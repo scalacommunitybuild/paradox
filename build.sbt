@@ -36,8 +36,7 @@ lazy val paradox = project
 
 lazy val core = project
   .in(file("core"))
-  .disablePlugins(BintrayPlugin)
-  .enablePlugins(SonatypePublish)
+  .disablePlugins(BintrayPlugin, SonatypePublish)
   .settings(
     name := "paradox",
     libraryDependencies ++= Seq(
