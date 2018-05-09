@@ -334,7 +334,7 @@ case class SnipDirective(page: Page, variables: Map[String, String])
       val (text, snippetLang) = Snippet("snip", source, labels, page, variables)
       val lang = Option(node.attributes.value("type")).getOrElse(snippetLang)
       val group = Option(node.attributes.value("group")).getOrElse("")
-      new VerbatimGroupNode(text, lang, group).accept(visitor)
+      new VerbatimGroupNode(text, lang, group, node.attributes.classes).accept(visitor)
     } catch {
       case e: FileNotFoundException =>
         throw new SnipDirective.LinkException(s"Unknown snippet [${e.getMessage}] referenced from [${page.path}]")
@@ -381,6 +381,7 @@ case class FiddleDirective(page: Page, variables: Map[String, String])
           |  // $FiddleEnd
           |}
           |""".stripMargin, "UTF-8")
+        .replace("+", "%20") // due to: https://stackoverflow.com/questions/4737841/urlencoder-not-able-to-translate-space-character
 
       printer.println.print(s"""
         <iframe class="$cssClass" $width $height src="$baseUrl?$extraParams&source=$fiddleSource" frameborder="0" style="$cssStyle"></iframe>
@@ -500,7 +501,8 @@ case class WrapDirective(typ: String) extends ContainerBlockDirective(Array(typ,
  *
  * Wraps inner contents in a `span`, optionally with custom `id` and/or `class` attributes.
  */
-case class InlineWrapDirective(typ: String) extends InlineDirective("span") {
+case class InlineWrapDirective(typ: String) extends InlineDirective(Array(typ, typ.toUpperCase): _*) {
+
   def render(node: DirectiveNode, visitor: Visitor, printer: Printer): Unit = {
     val id =
       node.attributes.identifier match {
